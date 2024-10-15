@@ -1,2 +1,1 @@
-# bulk-transfer-poc
-POC for bulk file transfer.
+### bulk-transfer-poc
