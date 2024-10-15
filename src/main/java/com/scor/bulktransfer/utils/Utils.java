@@ -1,4 +1,4 @@
-package com.scor.bulktransfer.push.utils;
+package com.scor.bulktransfer.utils;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;

@@ -1,4 +1,4 @@
-package com.scor.bulktransfer.pull;
+package com.scor.bulktransfer.functions;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;

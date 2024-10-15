@@ -1,11 +1,11 @@
-package com.scor.bulktransfer.push.services;
+package com.scor.bulktransfer.services;
 
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableClientBuilder;
 import com.azure.data.tables.models.TableEntity;
 import com.azure.data.tables.models.TableServiceException;
 import com.microsoft.azure.functions.ExecutionContext;
-import com.scor.bulktransfer.push.utils.Utils;
+import com.scor.bulktransfer.utils.Utils;
 
 /**
  * interacts with Azure Table Storage.

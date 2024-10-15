@@ -1,7 +1,7 @@
-package com.scor.bulktransfer.push.services;
+package com.scor.bulktransfer.services;
 
-import com.scor.bulktransfer.push.models.EventSchema;
-import com.scor.bulktransfer.push.utils.Utils;
+import com.scor.bulktransfer.models.EventSchema;
+import com.scor.bulktransfer.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;

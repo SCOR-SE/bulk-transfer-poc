@@ -1,8 +1,9 @@
-package com.scor.bulktransfer;
+package com.scor.bulktransfer.functions;
 
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.TimerTrigger;
+import com.scor.bulktransfer.services.CleanupService;
 
 import java.time.OffsetDateTime;
 

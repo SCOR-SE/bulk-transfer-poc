@@ -1,10 +1,10 @@
-package com.scor.bulktransfer.push.models;
+package com.scor.bulktransfer.models;
 
 import java.util.Date;
 import java.util.Map;
 
 public class EventSchema {
-
+//todo polish
     public String topic;
     public String subject;
     public String eventType;

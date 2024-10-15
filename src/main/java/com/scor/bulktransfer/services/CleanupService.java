@@ -1,4 +1,4 @@
-package com.scor.bulktransfer;
+package com.scor.bulktransfer.services;
 
 
 import com.azure.core.http.rest.PagedIterable;
