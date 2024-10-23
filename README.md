@@ -62,12 +62,12 @@ mvn azure-functions:delpoy`
 
 ### AZCopy and checksum generation
 
-[//]: # (producer.sh)
+`producer.sh`
 ### Creating Topics and Subscriptions and Filters
 
 TODO: Add the Azure CLI commands to create Service Bus topics and subscriptions.
 
-[//]: # (setup_service_bus_subscription.sh)
+`setup_service_bus_subscription.sh`
 
 ### Applying Subscription Filters
 
