@@ -52,4 +52,23 @@ public final class Utils {
     public static String nullSafe(Object obj) {
         return obj != null ? obj.toString() : "";
     }
+
+    public static String extractContainerName(String input) {
+        String containerPrefix = "windows.net/";
+        int startIndex = input.indexOf(containerPrefix) + containerPrefix.length();
+
+        int endIndex = input.indexOf("/", startIndex);
+
+        if (endIndex != -1) {
+            return input.substring(startIndex, endIndex);
+        }
+
+        return null;
+    }
+    public static String generatePartitionKey(String eventId) {
+        return eventId.length() > 5 ? eventId.substring(0, 5) : eventId;
+    }
+    public static String generateRowKey(String eventId) {
+        return eventId;
+    }
 }

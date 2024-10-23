@@ -1,5 +1,8 @@
 package com.scor.bulktransfer.functions;
 
+import com.azure.storage.queue.QueueClient;
+import com.azure.storage.queue.QueueClientBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.EventGridTrigger;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -9,6 +12,10 @@ import com.scor.bulktransfer.services.MessagingService;
 import com.scor.bulktransfer.services.MetadataService;
 import com.scor.bulktransfer.services.StorageService;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 
 /**
@@ -16,35 +23,32 @@ import java.util.Map;
  */
 public class EventGridMetadataLoggerFunction {
 
-    private final MetadataService metadataService;
-    private final JsonService jsonService;
     private final StorageService storageService;
-    private final MessagingService messagingService;
+    private final QueueClient deadLetterQueueClient;
 
-    // singleton for production
     public EventGridMetadataLoggerFunction() {
-        this.metadataService = MetadataService.getInstance();
-        this.jsonService = JsonService.getInstance();
         this.storageService = StorageService.getInstance();
-        this.messagingService = MessagingService.getInstance();
-    }
 
-    //  for testing and injecting mock instances
-    public EventGridMetadataLoggerFunction(MetadataService metadataService, JsonService jsonService, StorageService storageService, MessagingService messagingService) {
-        this.metadataService = metadataService;
-        this.jsonService = jsonService;
-        this.storageService = storageService;
-        this.messagingService = messagingService;
+        String queueConnectionString = System.getenv("STORAGE_CONNECTION_STRING");
+        String deadLetterQueueName = "deadletterqueue";
+        this.deadLetterQueueClient = new QueueClientBuilder()
+                .connectionString(queueConnectionString)
+                .queueName(deadLetterQueueName)
+                .buildClient();
     }
 
     @FunctionName("EventGridListener")
-    public void run(@EventGridTrigger(name = "event") EventSchema event, final ExecutionContext context) {
+    public void run(
+            @EventGridTrigger(name = "event") EventSchema event,
+            final ExecutionContext context) {
 
         context.getLogger().info(String.format("EventGridListener function triggered for Event ID: %s", event.id));
 
         if (event.id == null || event.id.isEmpty()) {
             context.getLogger().severe("Event ID is missing.");
-            throw new IllegalArgumentException("Event ID is required.");
+            // Optionally log the event to dead-letter storage
+            sendToDeadLetter(event, "Event ID is missing.", context);
+            return;
         }
 
         try {
@@ -53,15 +57,50 @@ public class EventGridMetadataLoggerFunction {
                 return;
             }
 
-            Map<String, Object> metadata = metadataService.createMetadata(event);
-            String metadataJson = jsonService.convertToJson(metadata);
+            Map<String, Object> metadata = MetadataService.createMetadata(event);
+            String metadataJson = JsonService.convertToJson(metadata);
+
             storageService.logDataToTableStorage(metadataJson, event.id, context);
-            messagingService.sendMessage(metadataJson, context);
+            MessagingService.sendMessageToServiceBus(metadata, context);
+
+            storageService.markEventAsProcessed(event.id);
+
             context.getLogger().info(String.format("Successfully processed Event ID: %s", event.id));
 
         } catch (Exception e) {
             context.getLogger().severe(String.format("Error processing EventGrid event ID %s: %s", event.id, e.getMessage()));
-            throw e;
+            context.getLogger().severe(getStackTraceAsString(e));
+
+            // failed event to dead-letter
+            sendToDeadLetter(event, e.getMessage(), context);
+
+            // todo Does not rethrowing the exception prevent Event Grid from retrying?
         }
+    }
+
+    private void sendToDeadLetter(EventSchema event, String errorMessage, ExecutionContext context) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String eventJson = objectMapper.writeValueAsString(event);
+
+            String deadLetterMessage = objectMapper.writeValueAsString(
+                    Map.of(
+                            "errorMessage", errorMessage,
+                            "failedEvent", eventJson
+                    )
+            );
+            deadLetterQueueClient.sendMessage(Base64.getEncoder().encodeToString(deadLetterMessage.getBytes(StandardCharsets.UTF_8)));
+            context.getLogger().info("Event sent to dead-letter queue.");
+
+        } catch (Exception ex) {
+            context.getLogger().severe("Failed to send event to dead-letter queue: " + ex.getMessage());
+            context.getLogger().severe(getStackTraceAsString(ex));
+        }
+    }
+
+    private String getStackTraceAsString(Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }

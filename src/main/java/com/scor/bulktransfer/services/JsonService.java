@@ -8,18 +8,9 @@ import java.util.Map;
 
 public class JsonService {
 
-    private static final JsonService INSTANCE = new JsonService();
-    private final ObjectMapper objectMapper;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private JsonService() {
-        this.objectMapper = new ObjectMapper();
-    }
-
-    public static JsonService getInstance() {
-        return INSTANCE;
-    }
-
-    public String convertToJson(Map<String, Object> metadata) {
+    public static String convertToJson(Map<String, Object> metadata) {
         try {
             return objectMapper.writeValueAsString(metadata);
         } catch (JsonProcessingException e) {
