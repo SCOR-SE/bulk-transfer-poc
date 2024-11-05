@@ -35,7 +35,7 @@ This project demonstrates how to integrate Azure Blob Storage, Event Grid, Azure
 
 ## Architecture Diagram
 
-![Mermaid Diagram](https://github.com/farinazgh/bulk-transfer-poc/raw/main/mermaid-diagram.svg)
+![Mermaid Diagram](https://github.com/SCOR-SE/bulk-transfer-poc/blob/main/diagrams/full-azure-solution.mmd)
 
 
 ## Azure Services Used
